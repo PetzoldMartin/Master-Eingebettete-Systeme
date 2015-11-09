@@ -1,0 +1,118 @@
+#include "implementation.oil"
+
+CPU ATMEL_AT91SAM7S256
+{
+	OS LEJOS_OSEK
+	{
+		STATUS = EXTENDED;
+		STARTUPHOOK = FALSE;
+		ERRORHOOK = FALSE;
+		SHUTDOWNHOOK = FALSE;
+		PRETASKHOOK = FALSE;
+		POSTTASKHOOK = FALSE;
+		USEGETSERVICEID = FALSE;
+		USEPARAMETERACCESS = FALSE;
+		USERESSCHEDULER = FALSE;
+	};
+	
+	/* Definition of application mode */
+	APPMODE appmode1{};
+	
+	EVENT TouchSensorOnEvent
+	{
+		MASK = AUTO;
+	};
+	
+	EVENT TouchSensorOffEvent
+	{
+		MASK = AUTO;
+	};
+	
+	EVENT ColorSensorEvent
+	{
+		MASK = AUTO;
+	};
+	
+	/* Definition of Task1 */
+	TASK Task1
+	{
+
+		AUTOSTART = TRUE
+		{
+			APPMODE = appmode1;
+		};
+		
+		PRIORITY = 2;
+		ACTIVATION = 1;
+		SCHEDULE = FULL;
+		EVENT = TouchSensorOnEvent;
+		EVENT = TouchSensorOffEvent;
+		EVENT = ColorSensorEvent;
+		RESOURCE = lightRes;
+		RESOURCE = runningRes;
+	};
+	
+	/* Definition of task_touch */
+	TASK task_touch
+	{
+		
+		AUTOSTART = FALSE;
+	
+		PRIORITY = 3;
+		ACTIVATION = 1;
+		SCHEDULE = FULL;
+		STACKSIZE = 512;
+		RESOURCE = runningRes;
+	};
+	
+	TASK task_light
+	{
+		AUTOSTART = FALSE;
+		PRIORITY = 3;
+		ACTIVATION = 1;
+		SCHEDULE = FULL;
+		STACKSIZE = 512;
+		RESOURCE = lightRes;
+	};
+	
+	RESOURCE lightRes
+	{
+		RESOURCEPROPERTY = STANDARD;
+	};
+	
+	RESOURCE runningRes
+	{
+		RESOURCEPROPERTY = STANDARD;
+	};
+	
+	COUNTER SysTimerCnt
+	{
+		MINCYCLE = 1;
+		MAXALLOWEDVALUE = 10000;
+		TICKSPERBASE = 1;
+	};
+	
+	ALARM alarm_touch {
+		COUNTER = SysTimerCnt;
+		ACTION = ACTIVATETASK {
+			TASK = task_touch;
+		};
+		AUTOSTART = TRUE {
+			ALARMTIME = 1;
+			CYCLETIME = 250;
+			APPMODE = appmode1;
+		};
+	};
+	
+	ALARM alarm_light {
+		COUNTER = SysTimerCnt;
+		ACTION = ACTIVATETASK {
+			TASK = task_light;
+		};
+		AUTOSTART = TRUE {
+			ALARMTIME = 1;
+			CYCLETIME = 10;
+			APPMODE = appmode1;
+		};
+	};
+};
