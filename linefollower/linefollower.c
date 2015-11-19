@@ -4,7 +4,7 @@
 #include "ecrobot_interface.h"
 
 #define LOWER_LIMIT 5	// black
-#define UPPER_LIMIT 80	// white
+#define UPPER_LIMIT 40	// white
 
 DeclareCounter(SysTimerCnt);
 
@@ -60,26 +60,26 @@ TASK(Task1) {
 			// ReleaseResource(lightRes);
 			
 			if(red < LOWER_LIMIT) {
-				// drive right, it's in black area
-				display_goto_xy(0, 3);
-				display_string("right");
-				display_update();
-				nxt_motor_set_speed(NXT_PORT_B, 90, 1);		// left motor
-				nxt_motor_set_speed(NXT_PORT_C, -50, 1);		// right motor
-			} else if (red > UPPER_LIMIT) {
-				// drive left, it's in white area
+				// drive left, it's in black area
 				display_goto_xy(0, 3);
 				display_string("left");
 				display_update();
-				nxt_motor_set_speed(NXT_PORT_B, -50, 1);		// left motor
-				nxt_motor_set_speed(NXT_PORT_C, 90, 1);		// right motor
+				nxt_motor_set_speed(NXT_PORT_B, 10, 1);		// left motor
+				nxt_motor_set_speed(NXT_PORT_C, 40, 1);		// right motor
+			} else if (red > UPPER_LIMIT) {
+				// drive right, it's in white area
+				display_goto_xy(0, 3);
+				display_string("right");
+				display_update();
+				nxt_motor_set_speed(NXT_PORT_B, 40, 1);		// left motor
+				nxt_motor_set_speed(NXT_PORT_C, 10, 1);		// right motor
 			} else {
 				// straight forward
 				display_goto_xy(0, 3);
 				display_string("straight");
 				display_update();
-				nxt_motor_set_speed(NXT_PORT_B, 25, 1);		// left motor
-				nxt_motor_set_speed(NXT_PORT_C, 25, 1);		// right motor
+				nxt_motor_set_speed(NXT_PORT_B, 40, 1);		// left motor
+				nxt_motor_set_speed(NXT_PORT_C, 40, 1);		// right motor
 			}
 		
 		
