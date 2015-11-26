@@ -56,30 +56,30 @@ TASK(Task1) {
 			ClearEvent(ColorSensorEvent);
 			
 			// GetResource(lightRes);
-			S16 red = color_data[0];
+			S16 blue = color_data[2];
 			// ReleaseResource(lightRes);
 			
-			if(red < LOWER_LIMIT) {
+			if(blue < LOWER_LIMIT) {
 				// drive left, it's in black area
 				display_goto_xy(0, 3);
 				display_string("left");
 				display_update();
 				nxt_motor_set_speed(NXT_PORT_B, 10, 1);		// left motor
-				nxt_motor_set_speed(NXT_PORT_C, 40, 1);		// right motor
-			} else if (red > UPPER_LIMIT) {
+				nxt_motor_set_speed(NXT_PORT_C, 35, 1);		// right motor
+			} else if (blue > UPPER_LIMIT) {
 				// drive right, it's in white area
 				display_goto_xy(0, 3);
 				display_string("right");
 				display_update();
-				nxt_motor_set_speed(NXT_PORT_B, 40, 1);		// left motor
+				nxt_motor_set_speed(NXT_PORT_B, 35, 1);		// left motor
 				nxt_motor_set_speed(NXT_PORT_C, 10, 1);		// right motor
 			} else {
 				// straight forward
 				display_goto_xy(0, 3);
 				display_string("straight");
 				display_update();
-				nxt_motor_set_speed(NXT_PORT_B, 40, 1);		// left motor
-				nxt_motor_set_speed(NXT_PORT_C, 40, 1);		// right motor
+				nxt_motor_set_speed(NXT_PORT_B, 25, 1);		// left motor
+				nxt_motor_set_speed(NXT_PORT_C, 25, 1);		// right motor
 			}
 		
 		
