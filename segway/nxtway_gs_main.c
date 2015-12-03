@@ -10,8 +10,8 @@
 #include "kernel_id.h"
 #include "ecrobot_interface.h"
 
-#include "balancer.h" /* NXTway-GS C API header file */ <-This header file has to be included 
-#include "nxt_config.h"
+#include "balancer.h" /* NXTway-GS C API header file <-This header file has to be included */
+#include "config.h"
 
 /*============================================================================
  * MACRO DEFINITIONS
@@ -46,7 +46,7 @@ volatile U8 obstacle_flag;       /* 1(obstacle detected)/0(no obstacle) */
 void ecrobot_device_initialize(void)
 {
   ecrobot_init_sonar_sensor(PORT_SONAR);
-  ecrobot_init_bt_slave(BT_PASS_KEY);
+  //ecrobot_init_bt_slave(BT_PASS_KEY);
 }
 
 //*****************************************************************************
@@ -108,7 +108,7 @@ TASK(OSEK_Task_ts1)
       for (i = 0; i < BT_RCV_BUF_SIZE; i++){
         bt_receive_buf[i] = 0;
       }
-      balance_init(); /* NXTway-GS C API initialize function */ <-Call balance init function 
+      balance_init(); /* NXTway-GS C API initialize function  <-Call balance init function */
       nxt_motor_set_count(PORT_MOTOR_L, 0); /* reset left motor count */
       nxt_motor_set_count(PORT_MOTOR_R, 0); /* reset right motor count */
       cal_start_time = ecrobot_get_systick_ms();
@@ -142,7 +142,7 @@ TASK(OSEK_Task_ts1)
       }
 
       /* NXTway-GS C API balance control function (has to be invoked in 4msec period) */
-      balance_control( <-Call balance control function
+      balance_control( /*<-Call balance control */
         (F32)cmd_forward,
         (F32)cmd_turn,
         (F32)ecrobot_get_gyro_sensor(PORT_GYRO),
@@ -198,6 +198,4 @@ TASK(OSEK_Task_Background)
     ecrobot_status_monitor("NXTway-GS"); /* LCD display */
     systick_wait_ms(500); /* 500msec wait */
   }
-}
-
-/******************************** END OF FILE ********************************/
+};
