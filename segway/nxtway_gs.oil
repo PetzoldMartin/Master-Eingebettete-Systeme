@@ -45,7 +45,7 @@ CPU ATMEL_AT91SAM7S256
     {
       APPMODE = appmode1;
       ALARMTIME = 1;
-      CYCLETIME = 4; /* executed every 4msec */ <-Configure Task execution period to 4msec 
+      CYCLETIME = 4; /* executed every 4msec  <-Configure Task execution period to 4msec */
     };
   };
 
@@ -92,4 +92,5 @@ CPU ATMEL_AT91SAM7S256
     MINCYCLE = 1;
     MAXALLOWEDVALUE = 10000;
     TICKSPERBASE = 1; 
+  };
   };
