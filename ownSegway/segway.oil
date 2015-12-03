@@ -1,0 +1,83 @@
+#include "implementation.oil"
+
+CPU ATMEL_AT91SAM7S256
+{
+	OS LEJOS_OSEK
+	{
+		STATUS = EXTENDED;
+		STARTUPHOOK = FALSE;
+		ERRORHOOK = FALSE;
+		SHUTDOWNHOOK = FALSE;
+		PRETASKHOOK = FALSE;
+		POSTTASKHOOK = FALSE;
+		USEGETSERVICEID = FALSE;
+		USEPARAMETERACCESS = FALSE;
+		USERESSCHEDULER = FALSE;
+	};
+	
+	/* Definition of application mode */
+	APPMODE appmode1{};
+	
+	EVENT GyroSensorEvent
+	{
+		MASK = AUTO;
+	};
+	
+	/* Definition of Task1 */
+	TASK Task1
+	{
+
+		AUTOSTART = TRUE
+		{
+			APPMODE = appmode1;
+		};
+		
+		PRIORITY = 2;
+		ACTIVATION = 1;
+		SCHEDULE = FULL;
+		EVENT = GyroSensorEvent;
+		RESOURCE = gyroRes;
+		RESOURCE = runningRes;
+	};
+	
+	/* Definition of task_gyro */
+	
+	TASK task_gyro
+	{
+		AUTOSTART = FALSE;
+		PRIORITY = 3;
+		ACTIVATION = 1;
+		SCHEDULE = FULL;
+		STACKSIZE = 512;
+		RESOURCE = gyroRes;
+	};
+	
+	RESOURCE gyroRes
+	{
+		RESOURCEPROPERTY = STANDARD;
+	};
+	
+	RESOURCE runningRes	// use for sonic (maybe)
+	{
+		RESOURCEPROPERTY = STANDARD;
+	};
+	
+	COUNTER SysTimerCnt
+	{
+		MINCYCLE = 1;
+		MAXALLOWEDVALUE = 10000;
+		TICKSPERBASE = 1;
+	};
+	
+	ALARM alarm_gyro {
+		COUNTER = SysTimerCnt;
+		ACTION = ACTIVATETASK {
+			TASK = task_gyro;
+		};
+		AUTOSTART = TRUE {
+			ALARMTIME = 1;
+			CYCLETIME = 3;
+			APPMODE = appmode1;
+		};
+	};
+};
