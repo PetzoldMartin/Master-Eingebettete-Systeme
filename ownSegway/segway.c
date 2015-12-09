@@ -9,21 +9,53 @@
     nach vorn kippen -> 500
 */
 
-#define LOWER_LIMIT 500 // black
-#define UPPER_LIMIT 650 // white
+#define LOWER_LIMIT 500
+#define UPPER_LIMIT 650
 #define BASE_SPEED 30 
 #define INTEGRAL_LENGTH 5
 DeclareCounter(SysTimerCnt);
-
 DeclareResource(gyroRes);
-
 DeclareTask(Task1);
 DeclareTask(task_gyro);
-
 DeclareEvent(GyroSensorEvent);
-
 // sensordata of gyro
 U16 gyro_data;
+
+typedef struct
+{
+    double dState;
+    double iState;
+    double iMax, iMin;
+    double iGain,
+           pGain,
+           dGain;
+} SPid;
+
+void print_display(int y, char* text, int value) {
+    display_goto_xy(0, y);
+    display_string(text);
+    display_string(": ");
+    display_int(value, 0);
+    display_update();
+}
+
+double update_pid(SPid * pid, double error, double position) {
+    double pTerm, dTerm, iTerm;
+
+    pTerm = pid->pGain * error; // calculate proportional term
+
+    // calculate integral state with appropriate limiting
+    pid->iState += error;
+    if (pid->iState > pid->iMax) pid->iState = pid->iMax;
+    else if (pid->iState < pid->iMin) pid->iState = pid->iMin;
+
+    iTerm = pid->iGain * pid->iState;    // calculate integral term
+
+    dTerm = pid->dGain * (pid->dState - position);
+    pid->dState = position;
+
+    return pTerm + dTerm + iTerm;
+}
 
 void ecrobot_device_initialize(void) {
     // nothing to do
@@ -44,82 +76,40 @@ void user_1ms_isr_type2(void) {
 }
 
 TASK(Task1) {
-    // int I = 0;
-    // int integral[INTEGRAL_LENGTH];
-    // int wcount = 0;
-    // while (wcount < INTEGRAL_LENGTH) {
-    //     integral[wcount] = 0;
-    //     wcount++;
-    // }
-    int count = 0;
-    // int errorOld=0;
-    int tempLL=LOWER_LIMIT;
+    SPid pid;
+    pid.iMin = LOWER_LIMIT;
+    pid.iMax = UPPER_LIMIT;
+    pid.pGain = 0.636;
+    pid.iGain = 0.2688;
+    pid.dGain = 0.000504;
+    pid.iState = 583;
+    pid.dState = 583;
     
     while (1) {
         WaitEvent(GyroSensorEvent);
         ClearEvent(GyroSensorEvent);
 
-        // U16 tmp_gyro_data = gyro_data;
-        // if(tmp_gyro_data < LOWER_LIMIT){
-        //     tempLL=tmp_gyro_data;
-        // };
-        // if(tmp_gyro_data>/* FIXME deleted */){
-        //     /* FIXME deleted */=tmp_gyro_data;
-        // };
-        
-        U16 xdelta = gyro_data;
-        S16 ydelta = 2 * BASE_SPEED;
-        float KP = ((float) ydelta / (float) xdelta);
-        // float KI = KP/2;
-        // float KD = KP/2;
+        int plantCommand = 593;
+        int position = gyro_data;
 
-        S16 error = (gyro_data - (xdelta / 2));
-        // //Anti Overshooting
-        // if (error == 0) {
-        //     I = 0.0F;
-        //     int wcount = 0;
-        //     while (wcount < INTEGRAL_LENGTH) {
-        //         integral[wcount] = 0;
-        //         wcount++;
-        //     }
-        //     //END Anti Overshooting  
-        // } else {
-        //     if (count > INTEGRAL_LENGTH) {
-        //         count = 0;
-        //     }
-        //     integral[count] = error;
-        //     count++;
-        // };
-        // //Integral Function
-        // I=0;
-        // int wcount = 0;
-        // while (wcount < INTEGRAL_LENGTH) {
-        //     I += integral[wcount];
-        //     wcount++;
-        // }
-        // I = I / INTEGRAL_LENGTH;
-        
-        // //Differential Function
-        // int D=error-errorOld;
+        S16 error = update_pid(&pid, plantCommand - position, position);
+        // S16 turn = (pid.pGain * error) - 57;
+        S16 turn = pid.pGain * (error - 180);
 
-        S16 turn = (KP * error); // +(KI * I)+(KD* D);
-
-        display_goto_xy(0, 1);
-        display_string("turn: ");
-        display_int(turn, 0);       
+        print_display(0, "error", error);
+        print_display(1, "turn", turn);
+        print_display(2, "pid err", plantCommand - position);
+        print_display(5, "iState", pid.iState);
+        print_display(6, "dState", pid.dState);
         
-        display_goto_xy(0, 2);
-        display_string("error: ");
-        display_int(error, 0);
-        
-        nxt_motor_set_count(NXT_PORT_B, turn);
-        nxt_motor_set_count(NXT_PORT_C, turn);
-
-        // errorOld=error;
+        nxt_motor_set_speed(NXT_PORT_B, turn, 1);
+        nxt_motor_set_speed(NXT_PORT_C, turn, 1);
     }
 }
 
 TASK(task_gyro) {
     gyro_data = ecrobot_get_gyro_sensor(NXT_PORT_S4);
+    print_display(7, "Gyro", gyro_data);
+    SetEvent(Task1, GyroSensorEvent);
     TerminateTask();
 }
